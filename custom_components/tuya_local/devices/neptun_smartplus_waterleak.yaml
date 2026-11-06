@@ -1,105 +1,380 @@
+# Neptun Smart+ Tuya local profile with individual wired-line and RF sensors.
+# Based on working 2-valve/2-meter config; all sensor additions are read-only.
+# RF DP117 decoding follows old manufacturer Modbus status bit layout and matches
+# observed RF status samples, but is EXPERIMENTAL for the new board until tested.
+# Never rely on these experimental per-sensor entities as the only flood protection.
+# Each wired LINE is individually monitored, not each physical parallel sensor.
 name: Water leak detector
 products:
-  - id: fbewfxzogbzphuy3
-    manufacturer: Neptun
-    model: Smart+
+- id: fbewfxzogbzphuy3
+  manufacturer: Neptun
+  model: Smart+
 entities:
-  - entity: binary_sensor
-    class: moisture
-    dps:
-      - id: 1
-        type: boolean
-        optional: true
-        name: sensor
-        mapping:
-          - dps_val: alarm
-            value: true
-          - value: false
-  - entity: sensor
-    class: battery
-    dps:
-      - id: 3
-        type: string
-        optional: true
-        name: sensor
-        unit: "%"
-        mapping:
-          - dps_val: low
-            value: 20
-          - dps_val: middle
-            value: 50
-          - dps_val: high
-            value: 80
-  - entity: button
-    name: Mute
-    icon: "mdi:volume-mute"
-    dps:
-      - id: 7
-        type: boolean
-        optional: true
-        name: button
-  - entity: siren
-    category: config
-    dps:
-      - id: 8
-        type: integer
-        optional: true
-        name: volume_level
-        mapping:
-          - dps_val: mute
-            value: 0.0
-          - dps_val: low
-            value: 0.33
-          - dps_val: middle
-            value: 0.66
-          - dps_val: high
-            value: 1.0
-      - id: 141
-        type: integer
-        name: duration
-        range:
-          min: 0
-          max: 255
-  - entity: lock
-    translation_key: child_lock
-    category: config
-    dps:
-      - id: 108
-        type: boolean
-        optional: true
-        name: lock
-  - entity: binary_sensor
-    class: problem
-    category: diagnostic
-    dps:
-      - id: 119
-        type: bitfield
-        name: sensor
-        mapping:
-          - dps_val: 0
-            value: false
-          - value: true
-      - id: 119
-        type: bitfield
-        name: fault_code
-      - id: 121
-        type: base64
-        name: serial_number
-      - id: 139
-        type: integer
-        name: line_sensor_errors
-      - id: 140
-        type: integer
-        name: error_code
-  - entity: event
-    translation_key: notification
-    dps:
-      - id: 120
-        type: boolean
-        optional: true
-        name: event
-        mapping:
-          - dps_val: true
-            value: alert
-          - dps_val: false
-            value: cleared
+- entity: binary_sensor
+  class: moisture
+  dps:
+  - id: 1
+    type: string
+    optional: true
+    name: sensor
+    mapping:
+    - dps_val: alarm
+      value: true
+    - value: false
+- entity: sensor
+  class: battery
+  dps:
+  - id: 3
+    type: string
+    optional: true
+    name: sensor
+    unit: '%'
+    mapping:
+    - dps_val: low
+      value: 20
+    - dps_val: middle
+      value: 50
+    - dps_val: high
+      value: 80
+- entity: button
+  name: Mute
+  icon: mdi:volume-mute
+  dps:
+  - id: 7
+    type: boolean
+    optional: true
+    name: button
+- entity: siren
+  category: config
+  dps:
+  - id: 8
+    type: integer
+    optional: true
+    name: volume_level
+    mapping:
+    - dps_val: mute
+      value: 0.0
+    - dps_val: low
+      value: 0.33
+    - dps_val: middle
+      value: 0.66
+    - dps_val: high
+      value: 1.0
+  - id: 141
+    type: integer
+    name: duration
+    range:
+      min: 0
+      max: 255
+- entity: lock
+  translation_key: child_lock
+  category: config
+  dps:
+  - id: 108
+    type: boolean
+    optional: true
+    name: lock
+- entity: binary_sensor
+  class: problem
+  category: diagnostic
+  dps:
+  - id: 119
+    type: bitfield
+    name: sensor
+    mapping:
+    - dps_val: 0
+      value: false
+    - value: true
+  - id: 119
+    type: bitfield
+    name: fault_code
+  - id: 121
+    type: base64
+    name: serial_number
+    sensitive: true
+  - id: 139
+    type: integer
+    name: line_sensor_errors
+  - id: 140
+    type: integer
+    name: error_code
+- entity: binary_sensor
+  name: RF sensors link lost (any)
+  class: problem
+  dps:
+  - id: 119
+    type: bitfield
+    name: sensor
+    mapping:
+    - dps_val: 8
+      value: true
+    - value: false
+- entity: event
+  translation_key: notification
+  dps:
+  - id: 120
+    type: boolean
+    optional: true
+    name: event
+    mapping:
+    - dps_val: true
+      value: alert
+    - dps_val: false
+      value: cleared
+- entity: valve
+  name: Zone 1
+  class: water
+  dps:
+  - id: 104
+    type: boolean
+    name: valve
+- entity: valve
+  name: Zone 2
+  class: water
+  dps:
+  - id: 105
+    type: boolean
+    name: valve
+- entity: sensor
+  name: RF sensors count
+  category: diagnostic
+  dps:
+  - id: 114
+    type: integer
+    name: sensor
+- entity: sensor
+  name: Meter 1
+  icon: mdi:counter
+  dps:
+  - id: 118
+    type: base64
+    name: sensor
+    mask: 00FFFFFFFF000000000000000000000000000000000000000000000000000000
+    unit: m³
+    precision: 3
+    mapping:
+    - scale: 1000
+- entity: sensor
+  name: Meter 2
+  icon: mdi:counter
+  dps:
+  - id: 118
+    type: base64
+    name: sensor
+    mask: 000000000000000000FFFFFFFF00000000000000000000000000000000000000
+    unit: m³
+    precision: 3
+    mapping:
+    - scale: 1000
+- entity: sensor
+  name: Counter settings raw (DP118)
+  category: diagnostic
+  icon: mdi:code-json
+  hidden: true
+  dps:
+  - id: 118
+    type: string
+    name: sensor
+    readonly: true
+- entity: sensor
+  name: Counter 1 payload raw (DP142)
+  category: diagnostic
+  icon: mdi:code-json
+  hidden: true
+  dps:
+  - id: 142
+    type: string
+    name: sensor
+    readonly: true
+- entity: sensor
+  name: Counter 2 payload raw (DP143)
+  category: diagnostic
+  icon: mdi:code-json
+  hidden: true
+  dps:
+  - id: 143
+    type: string
+    name: sensor
+    readonly: true
+- entity: binary_sensor
+  name: Wired line 1 leak
+  class: moisture
+  dps:
+  - id: 110
+    type: bitfield
+    name: sensor
+    mapping:
+    - dps_val: 1
+      value: true
+    - value: false
+- entity: binary_sensor
+  name: Wired line 2 leak
+  class: moisture
+  dps:
+  - id: 110
+    type: bitfield
+    name: sensor
+    mapping:
+    - dps_val: 2
+      value: true
+    - value: false
+- entity: binary_sensor
+  name: Wired line 3 leak
+  class: moisture
+  dps:
+  - id: 110
+    type: bitfield
+    name: sensor
+    mapping:
+    - dps_val: 4
+      value: true
+    - value: false
+- entity: binary_sensor
+  name: Wired line 4 leak
+  class: moisture
+  dps:
+  - id: 110
+    type: bitfield
+    name: sensor
+    mapping:
+    - dps_val: 8
+      value: true
+    - value: false
+- entity: sensor
+  name: Wired lines status raw DP110
+  category: diagnostic
+  icon: mdi:code-braces
+  hidden: true
+  dps:
+  - id: 110
+    type: integer
+    name: sensor
+- entity: binary_sensor
+  name: RF 1 leak
+  class: moisture
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: '00010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+    mapping:
+    - dps_val: 1
+      value: true
+    - value: false
+- entity: sensor
+  name: RF 1 battery
+  class: battery
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: FF000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    unit: '%'
+- entity: sensor
+  name: RF 1 signal
+  category: diagnostic
+  hidden: true
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: 00380000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    mapping:
+    - dps_val: 0
+      value: No link
+    - dps_val: 1
+      value: Weak
+    - dps_val: 2
+      value: Medium
+    - dps_val: 3
+      value: Good
+    - dps_val: 4
+      value: Excellent
+
+- entity: binary_sensor
+  name: RF 1 battery low
+  class: battery
+  category: diagnostic
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: '00020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+    mapping:
+    - dps_val: 1
+      value: true
+    - value: false
+- entity: binary_sensor
+  name: Two-zone mode
+  category: diagnostic
+  icon: mdi:circle-multiple-outline
+  dps:
+  - id: 106
+    type: boolean
+    name: sensor
+    optional: true
+- entity: binary_sensor
+  name: RF 2 leak
+  class: moisture
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: '00000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+    mapping:
+    - dps_val: 1
+      value: true
+    - value: false
+- entity: sensor
+  name: RF 2 battery
+  class: battery
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: 0000FF00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    unit: '%'
+- entity: sensor
+  name: RF 2 signal
+  category: diagnostic
+  hidden: true
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: 00000038000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    mapping:
+    - dps_val: 0
+      value: No link
+    - dps_val: 1
+      value: Weak
+    - dps_val: 2
+      value: Medium
+    - dps_val: 3
+      value: Good
+    - dps_val: 4
+      value: Excellent
+- entity: binary_sensor
+  name: RF 2 battery low
+  class: battery
+  category: diagnostic
+  dps:
+  - id: 117
+    type: base64
+    name: sensor
+    mask: '00000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+    mapping:
+    - dps_val: 1
+      value: true
+    - value: false
+- entity: sensor
+  name: RF status raw DP117
+  category: diagnostic
+  icon: mdi:code-json
+  hidden: true
+  dps:
+  - id: 117
+    type: string
+    name: sensor
+    readonly: true
+    sensitive: true
