@@ -144,11 +144,13 @@ entities:
     name: sensor
 - entity: sensor
   name: Meter 1
+  class: water
   icon: mdi:counter
   dps:
   - id: 118
     type: base64
     name: sensor
+    class: total_increasing
     mask: 00FFFFFFFF000000000000000000000000000000000000000000000000000000
     unit: m³
     precision: 3
@@ -156,11 +158,13 @@ entities:
     - scale: 1000
 - entity: sensor
   name: Meter 2
+  class: water
   icon: mdi:counter
   dps:
   - id: 118
     type: base64
     name: sensor
+    class: total_increasing
     mask: 000000000000000000FFFFFFFF00000000000000000000000000000000000000
     unit: m³
     precision: 3
